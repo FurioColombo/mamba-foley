@@ -52,14 +52,16 @@ Click the link above links to download the corresponding datasets.
 ## Scripts configurations
 Every python script has a corresponding `.json` config file, which contains all settings for the script configuration.
 
-### TODO: scripts fields description - how to do this??  
+You can find a scripts configuration explanation in the folders containing the relative config files:
+   - [Training Scripts Configuration](./config/training/README_training.md)
+   - [Inference Scripts Configuration](./config/inference/README_inference.md) 
+   - [Testing Scripts Configuration](./config/testing/README_testing.md) 
 
 ## Inference
 
 To perform inference using our model, follow these steps:
 
-TODO:
-1. Download the pre-trained model weights and configurations from the following link: [prertrained.zip](https://zenodo.org/records/10826692).
+1. Download the pre-trained model weights and configurations from the following link: [pretrained model download](https://zenodo.org/records/10826692).
     ```bash
     wget https://sandbox.zenodo.org/records/111421/files/pretrained.zip 
     ```

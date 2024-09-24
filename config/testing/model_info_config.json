@@ -1,0 +1,9 @@
+{
+  "CUDA_VISIBLE_DEVICES": "2",
+  "max_RAM_usage": 85,
+
+  "model_path": "./pretrained/epoch-500_step-637037.pt",
+  "model_config_path": "./pretrained/params.json",
+
+  "depth": 3
+}

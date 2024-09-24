@@ -1,0 +1,27 @@
+wheel==0.41.2
+einops==0.7.0
+ffmpeg==1.4
+librosa==0.10.1
+llvmlite==0.41.1
+matplotlib==3.7.5
+numpy==1.24.4
+pillow==10.2.0
+protobuf==4.25.3
+pydub==0.25.1
+pyparsing
+python-dateutil==2.9.0.post0
+scikit-learn==1.3.2
+scipy==1.10.1
+soundfile==0.12.1
+tensorboard==2.14.0
+tqdm==4.66.2
+typing_extensions==4.10.0
+urllib3==2.2.1
+mamba-ssm==1.2.0
+triton==2.2.0
+
+# Common utils
+torch-summary==1.4.5
+torch_tb_profiler==0.4.3
+gpustat==1.1.1
+tmuxp==1.45.0

@@ -4,7 +4,7 @@
 
   "model_checkpoints_path": "./pretrained/epoch-500_step-637037.pt",
   "model_config_path": "./pretrained/params.json",
-  "output_dir": "test_output_dir_2",
+  "output_dir": "results",
 
 
   "gen_all_classes": "False",
@@ -23,5 +23,4 @@
 
   "samples_per_class": "1",
   "samples_per_temporal_cond": "1"
-
 }

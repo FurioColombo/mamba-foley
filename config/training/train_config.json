@@ -64,7 +64,7 @@
   },
 
   "telegram": {
-    "apiToken": "7133523436:AAHSM_44T1MFKLhkHxm5myZ7u0o1IE0Xc6Q",
-    "chatID": "275894223"
+    "apiToken": "",
+    "chatID": ""
   }
 }

@@ -72,7 +72,7 @@ def main(params):
             target_audio_path=config.target_audio_path
         )
 
-    notify_telegram(f'Finished script execution: {__file__}')
+    notify_telegram(f'Finished script execution: {__file__}', config=params)
 
 
 def validate_args(config):

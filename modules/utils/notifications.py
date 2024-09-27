@@ -6,7 +6,7 @@ def notify_telegram(message, config, verbose=False):
     chatID = tg_config.chatID
     apiURL = f'https://api.telegram.org/bot{apiToken}/sendMessage'
     
-    if apiToken != '' and chatID != ''
+    if apiToken != '' and chatID != '':
         try:
             response = requests.post(apiURL, json={'chat_id': chatID, 'text': message})
             if verbose:

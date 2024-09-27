@@ -98,7 +98,7 @@ class Learner:
 
         # notify end of training
         notification = f'TRAINING FINISHED\nepoch {self.epoch} - step {self.step}\nbest_val_loss: {self.best_val_loss}'
-        notifications.notify_telegram(notification)
+        notifications.notify_telegram(notification, config=self.config)
 
     def train_epoch(self, device, prof=None):
         if self.distributed: self.train_set.sampler.set_epoch(self.epoch)

@@ -52,6 +52,7 @@ def main(params):
     # Set sampler
     gen = SampleGenerator(
         labels=LABELS,
+        config=config,
         n_gen_samples_per_class=params.samples_per_class,
         model_param_path=params.model_config_path,
         results_dir=params.output_dir,
@@ -61,7 +62,7 @@ def main(params):
     )
 
     for path in tqdm(checkpoints_paths, desc=f"checkpoints inference"):
-        check_RAM_usage(config.max_RAM_usage)
+        check_RAM_usage(config)
         gen.make_inference(
             class_names=config.class_names,
             gen_all_classes=config.gen_all_classes,

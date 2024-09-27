@@ -84,7 +84,8 @@ def measure_el1_distance(sample, target, event_type):
 
 
 class SampleGenerator:
-    def __init__(self, labels:list, n_gen_samples_per_class, results_dir, model_param_path, device, conditioning_audio_path = None, stereo:bool = False, save_conditioning=True, cond_type: str='rms'):
+    def __init__(self, config, labels:list, n_gen_samples_per_class, results_dir, model_param_path, device, conditioning_audio_path = None, stereo:bool = False, save_conditioning=True, cond_type: str='rms'):
+        self.config = config
         self.labels = labels
         self.device = device
         self.n_gen_samples_per_class = int(n_gen_samples_per_class)
@@ -201,7 +202,7 @@ class SampleGenerator:
             while self.n_gen_samples_per_class - computed_samples > 0:
 
                 # sanity checks
-                check_RAM_usage(max_percentage=85)
+                check_RAM_usage(self.config)
 
                 samples_to_generate = min(self.n_gen_samples_per_class - computed_samples, max_samples_batch)
 

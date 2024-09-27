@@ -121,7 +121,7 @@ class Learner:
 
             # Logging by steps | train losses, etc
             if self.is_master:
-                check_RAM_usage(self.config.max_RAM_usage, callback=lambda: self.save_to_checkpoint(filename=f'epoch-{self.epoch}'))
+                check_RAM_usage(self.config, callback=lambda: self.save_to_checkpoint(filename=f'epoch-{self.epoch}'))
                 if self.step % self.config.logging.n_steps_to_log == 0:
                     self._write_train_summary(self.step)
 

@@ -92,7 +92,8 @@ def check_nan(t:torch.Tensor, error_msg:str):
         raise RuntimeError(error_msg)
 
 
-def check_RAM_usage(max_percentage: int or float or None, callback=lambda: None):
+def check_RAM_usage(config, callback=lambda: None):
+    max_percentage = config.max_RAM_usage
     if max_percentage is None:
         config = load_json_config(ProjectPaths.config_file)
         max_percentage = config.max_RAM_usage
@@ -103,7 +104,7 @@ def check_RAM_usage(max_percentage: int or float or None, callback=lambda: None)
     if ram_usage > max_percentage:
         callback()
         notification = f'TRAINING INTERRUPTED\nThreshold ram_usage exceeded:{ram_usage}%'
-        notifications.notify_telegram(notification)
+        notifications.notify_telegram(notification, config)
         raise MemoryError('Threshold ram_usage exceeded:', ram_usage, '%')
 
 # ======= Config Utils =======

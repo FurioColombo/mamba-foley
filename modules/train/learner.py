@@ -137,9 +137,9 @@ class Learner:
                 self._write_inference_summary(self.step, device)
                 notification = f'EPOCH {self.epoch} - step {self.step}' \
                                f'\nbest_val_loss: {self.best_val_loss}'
-                notifications.notify_telegram(notification)
+                notifications.notify_telegram(notification, config=self.config)
             else:
-                notifications.notify_telegram(f'Finished epoch {self.epoch}', verbose=False)
+                notifications.notify_telegram(f'Finished epoch {self.epoch}', config=self.config, verbose=False)
 
             # Save best model's checkpoints
             if self.epoch % self.config.logging.n_epochs_to_checkpoint == 0 or self.epoch == self.config.training.n_epochs:
@@ -374,7 +374,7 @@ class Learner:
             save_basename = f"{filename}_step-{self.step}.pt"
             save_name = f"{self.model_dir}/{save_basename}"
             print("\nsaving model to:", save_name)
-            notifications.notify_telegram(f"saved model at epoch {self.epoch} - step {self.step}, with best_val_loss {self.best_val_loss}")
+            notifications.notify_telegram(f"saved model at epoch {self.epoch} - step {self.step}, with best_val_loss {self.best_val_loss}", config=self.config)
             torch.save(self.state_dict(), save_name)
 
     def _update_best_val_loss(self, val_loss):

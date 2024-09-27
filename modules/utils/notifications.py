@@ -1,5 +1,4 @@
 import requests
-import 
 
 def notify_telegram(message, config, verbose=False):
     tg_config = config.telegram if hasattr(config, 'telegram') else config

@@ -13,7 +13,7 @@ modules_folder_path = os.path.join(root_folder_path, "modules")
 sys.path.append(root_folder_path)
 sys.path.append(modules_folder_path)
 from modules.eval.sample_generator import SampleGenerator
-from modules.utils.utilities import check_RAM_usage
+from modules.utils.utilities import check_RAM_usage, str2bool
 from modules.utils.file_system import ProjectPaths
 from config.config import Config
 from modules.utils.notifications import notify_telegram
@@ -34,7 +34,6 @@ def prepare_machine():
 
 
 def main(params):
-
     prepare_machine()
     device = torch.device('cuda')
     stereo = params.stereo if params is bool else params.stereo == 'True'
@@ -65,11 +64,11 @@ def main(params):
         check_RAM_usage(config)
         gen.make_inference(
             class_names=config.class_names,
-            gen_all_classes=config.gen_all_classes,
+            gen_all_classes=str2bool(config.gen_all_classes),
             checkpoint_path=path,
             samples_per_temporal_cond=config.samples_per_temporal_cond,
             cond_scale=config.cond_scale,
-            same_class_conditioning=config.same_class_conditioning,
+            same_class_conditioning=str2bool(config.same_class_conditioning),
             target_audio_path=config.target_audio_path
         )
 
@@ -77,12 +76,12 @@ def main(params):
 
 
 def validate_args(config):
-    if config.gen_all_classes is False and config.class_names is None:
+    if str2bool(config.gen_all_classes) is False and config.class_names is None:
         assert config.class_names is not None, "if gen_all_classes is False, user should specify a class"
-    if config.gen_all_classes is True and config.class_names is not None: # todo: debug this crap
+    if str2bool(config.gen_all_classes) is True and config.class_names is not None: # todo: debug this crap
         logging.warning('WARNING: generating all classes, specified ones will be ignored.')
 
-    if config.target_audio_path is None and config.same_class_conditioning:
+    if config.target_audio_path is None and str2bool(config.same_class_conditioning):
         logging.warning('WARNING: generating without explicit conditioning')
 
     # todo: control samples per temp cond < samples per class and division % ? 0

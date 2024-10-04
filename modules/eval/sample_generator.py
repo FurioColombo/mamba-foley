@@ -1,9 +1,7 @@
 import os
-import json
 from pathlib import Path
 
 import torch
-import numpy as np
 import torchaudio
 
 import pydub
@@ -15,10 +13,8 @@ from modules.model.sampler import SDESampling_batch
 from modules.model.sde import VpSdeCos
 from modules.utils.data_sources import dataset_from_path
 from modules.utils.audio import adjust_audio_length, get_event_cond, high_pass_filter, resample_audio
-from modules.utils.utilities import normalize, check_RAM_usage
+from modules.utils.utilities import normalize, check_RAM_usage, str2bool
 from config.config import Config
-from utils.file_system import ProjectPaths
-
 
 def load_ema_weights(model, model_path):
     checkpoint = torch.load(model_path)
@@ -111,7 +107,11 @@ class SampleGenerator:
 
         self.test_set = None
 
-    def make_inference(self, class_names, gen_all_classes:bool, checkpoint_path: str or Path, samples_per_temporal_cond:int=1, cond_scale:int=3, same_class_conditioning=False, target_audio_path=False):
+    def make_inference(self, class_names, gen_all_classes:bool, checkpoint_path: str or Path, samples_per_temporal_cond:int=1, cond_scale:int=3, same_class_conditioning:bool=False, target_audio_path=False):
+        # sanity checks
+        gen_all_classes = str2bool(gen_all_classes) if type(gen_all_classes) == str else gen_all_classes
+        same_class_conditioning = str2bool(same_class_conditioning) if type(same_class_conditioning) == str else same_class_conditioning
+
         self.update_conditioning(target_audio_path)
 
         class_names = class_names if type(class_names) is list else [class_names, ]
@@ -124,11 +124,11 @@ class SampleGenerator:
         sampler = SDESampling_batch(model, sde, batch_size=self.n_gen_samples_per_class , device=self.device)
         # Generate N samples
         if gen_all_classes is True:
-            class_indices = range(len(self.labels))
+            class_indices = list(range(len(self.labels)))
         else:
             class_indices = [i for i, label in enumerate(self.labels) if label in class_names]
 
-        if same_class_conditioning:
+        if same_class_conditioning is True:
             test_cond_dirs = self.config_data.test_cond_dirs
             self.test_set = dataset_from_path(self.config_data.test_dirs, self.model_params, self.labels, cond_dirs=test_cond_dirs)
 
@@ -137,7 +137,7 @@ class SampleGenerator:
             sampler = sampler,
             cond_scale = int(cond_scale),
             samples_per_temporal_cond=int(samples_per_temporal_cond),
-            same_class_conditioning=same_class_conditioning
+            same_class_conditioning=str2bool(same_class_conditioning)
         )
         print('Done!')
 
@@ -200,7 +200,6 @@ class SampleGenerator:
             computed_samples = 0
 
             while self.n_gen_samples_per_class - computed_samples > 0:
-
                 # sanity checks
                 check_RAM_usage(self.config)
 
@@ -211,7 +210,6 @@ class SampleGenerator:
 
                 # save ground truths
                 if (target_audio_path is not None or self.target_audio is not None) and self.save_conditioning :
-                    print(self.target_audio.shape)
                     _save_samples(
                         samples=self.target_audio,
                         out_dir=ground_truth_dir,
@@ -229,14 +227,13 @@ class SampleGenerator:
                     starting_gen_idx=computed_samples,
                     is_ground_truth=False
                 )
-
                 computed_samples += samples_to_generate
                 print(f'computed {computed_samples}/{self.n_gen_samples_per_class} samples from {class_name} class\n')
 
     def update_conditioning(self, cond_audio_path):
         # Prepare target audio for conditioning (if exist)
         if cond_audio_path is not None and os.path.isfile(cond_audio_path):
-            print('conditioning audio path:', cond_audio_path)
+            print('\nconditioning audio path:', cond_audio_path)
             target_audio, sr = torchaudio.load(cond_audio_path)
             if sr != self.sample_rate:
                 target_audio = resample_audio(target_audio, sr, self.sample_rate)

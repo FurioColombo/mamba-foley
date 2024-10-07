@@ -24,15 +24,22 @@ def load_ema_weights(model, model_path):
     model.load_state_dict(dic_ema)
     return model
 
-def save_samples(samples, output_dir, sr, class_name:str, starting_idx:int=0, stereo:bool=False, target_audio=None, is_ground_truth:bool=False):
+def save_samples(samples, output_dir, sr, class_name:str, starting_idx:int=0, stereo:bool=False, target_audio=None, is_ground_truth:bool=False, ground_truth_path=None):
     assert len(samples.shape) == 2, f"ERROR: did not receive an array of samples: received tensor shape: {samples.shape}"
 
     for j in range(samples.shape[0]):
         sample = samples[j].cpu()
         sample = high_pass_filter(sample)
-        filename = f"{class_name}_gt_{str(j + 1 + starting_idx).zfill(3)}.wav" \
-            if is_ground_truth \
-            else f"{class_name}_{str(j + 1 + starting_idx).zfill(3)}.wav"
+
+        # compute filename - differentiate btw ground truth files and generated samples
+        if is_ground_truth:
+            if ground_truth_path is None:
+                filename = f"{class_name}_gt_{str(j + 1 + starting_idx).zfill(3)}.wav"
+            else:
+                gt_filename = os.path.basename(ground_truth_path).split('.')[0]
+                filename = f"{class_name}_gt_{str(j + 1 + starting_idx).zfill(3)}_cond_{gt_filename}.wav"
+        else:
+            filename = f"{class_name}_{str(j + 1 + starting_idx).zfill(3)}.wav"
 
         if stereo is True:
             assert target_audio is not None, "Target audio is required for stereo output."
@@ -107,7 +114,7 @@ class SampleGenerator:
 
         self.test_set = None
 
-    def make_inference(self, class_names, gen_all_classes:bool, checkpoint_path: str or Path, samples_per_temporal_cond:int=1, cond_scale:int=3, same_class_conditioning:bool=False, target_audio_path=False):
+    def make_inference(self, class_names, gen_all_classes:bool, checkpoint_path: str or Path, samples_per_temporal_cond:int=1, cond_scale:int=3, same_class_conditioning:bool=False, target_audio_path=None):
         # sanity checks
         gen_all_classes = str2bool(gen_all_classes) if type(gen_all_classes) == str else gen_all_classes
         same_class_conditioning = str2bool(same_class_conditioning) if type(same_class_conditioning) == str else same_class_conditioning
@@ -128,7 +135,7 @@ class SampleGenerator:
         else:
             class_indices = [i for i, label in enumerate(self.labels) if label in class_names]
 
-        if same_class_conditioning is True:
+        if str2bool(same_class_conditioning) is True:
             test_cond_dirs = self.config_data.test_cond_dirs
             self.test_set = dataset_from_path(self.config_data.test_dirs, self.model_params, self.labels, cond_dirs=test_cond_dirs)
 
@@ -137,26 +144,29 @@ class SampleGenerator:
             sampler = sampler,
             cond_scale = int(cond_scale),
             samples_per_temporal_cond=int(samples_per_temporal_cond),
-            same_class_conditioning=str2bool(same_class_conditioning)
+            same_class_conditioning=str2bool(same_class_conditioning),
+            target_audio_path=target_audio_path
         )
         print('Done!')
 
     def _generate_samples(self, class_indices:list, sampler, cond_scale:int=3, samples_per_temporal_cond:int=1, same_class_conditioning:bool=False, target_audio_path=None):
-        assert (same_class_conditioning and target_audio_path is not None) is False
+        same_class_conditioning =str2bool(same_class_conditioning)
+        # sanity checks
+        assert (same_class_conditioning is True) or (target_audio_path is not None), "CONFIG ERROR: set at least one between same_class_conditioning and target_audio_path."
         def _compute_conditioning(class_idx: int):
+            #  If conditioning needs to be automatically extracted randomly from eval dataset
+            if same_class_conditioning:
+                target_audio_dict = self.test_set.dataset.get_random_sample_from_class(class_idx)
+                self.target_audio = target_audio_dict['audio']
+                self.target_event = target_audio_dict["event"].unsqueeze(0).to(self.device)
+
             # If an audio file is provided for conditioning
-            if target_audio_path is not None:
+            elif target_audio_path is not None and os.path.isfile(target_audio_path):
                 self.target_audio, sr = torchaudio.load(target_audio_path)
                 if sr != self.sample_rate:
                     self.target_audio = resample_audio(self.target_audio, sr, self.sample_rate)
                 self.target_audio = adjust_audio_length(self.target_audio, self.audio_length)
-                self.target_event = get_event_cond(self.target_audio, self.cond_type)
-
-            #  If conditioning needs to be automatically extracted randomly from eval dataset
-            elif same_class_conditioning:
-                target_audio_dict = self.test_set.dataset.get_random_sample_from_class(class_idx)
-                self.target_audio = target_audio_dict['audio']
-                self.target_event = target_audio_dict["event"].unsqueeze(0).to(self.device)
+                self.target_event = get_event_cond(self.target_audio, self.cond_type).unsqueeze(0).to(self.device)
 
         def _generate_conditioned_samples(target_event, class_idx, num_samples):
             print(f"Generating {num_samples} samples of class \'{self.labels[class_idx]}\'...")
@@ -166,7 +176,7 @@ class SampleGenerator:
             samples = sampler.predict(noise, 100, classes, target_event, cond_scale=cond_scale)
             return samples
 
-        def _save_samples(samples, out_dir, class_name=None, starting_gen_idx: int=0, is_ground_truth: bool=False):
+        def _save_samples(samples, out_dir, class_name=None, starting_gen_idx: int=0, is_ground_truth: bool=False, ground_truth_path=None):
             # expand dimensions if a single sample is passed as argument
             if len(samples.shape) == 1:
                 samples = samples[None, :]
@@ -179,7 +189,8 @@ class SampleGenerator:
                 starting_idx=starting_gen_idx,
                 stereo=self.stereo,
                 target_audio=self.target_audio,
-                is_ground_truth=is_ground_truth
+                is_ground_truth=is_ground_truth,
+                ground_truth_path=ground_truth_path
             )
 
         for class_idx in class_indices:
@@ -200,25 +211,27 @@ class SampleGenerator:
             computed_samples = 0
 
             while self.n_gen_samples_per_class - computed_samples > 0:
+                samples_to_generate = min(self.n_gen_samples_per_class - computed_samples, max_samples_batch)
+
                 # sanity checks
                 check_RAM_usage(self.config)
 
-                samples_to_generate = min(self.n_gen_samples_per_class - computed_samples, max_samples_batch)
-
-                # generated samples
+                # conditioning
                 _compute_conditioning(class_idx)
 
                 # save ground truths
-                if (target_audio_path is not None or self.target_audio is not None) and self.save_conditioning :
+                if (target_audio_path is not None or self.target_audio is not None) and str2bool(self.save_conditioning) :
                     _save_samples(
                         samples=self.target_audio,
                         out_dir=ground_truth_dir,
                         class_name=class_name,
                         starting_gen_idx=computed_samples,
-                        is_ground_truth=True
+                        is_ground_truth=True,
+                        ground_truth_path=target_audio_path
                     )
 
                 # create and save generated samples
+
                 class_samples = _generate_conditioned_samples(self.target_event, class_idx, samples_to_generate)
                 _save_samples(
                     samples=class_samples,
@@ -238,7 +251,7 @@ class SampleGenerator:
             if sr != self.sample_rate:
                 target_audio = resample_audio(target_audio, sr, self.sample_rate)
             self.target_audio = adjust_audio_length(target_audio, self.audio_length)
-            self.target_event = get_event_cond(target_audio, self.model_params.event_type)
+            self.target_event = get_event_cond(target_audio, self.config_cond.event_type)
             self.target_event = self.target_event.repeat(self.n_gen_samples_per_class, 1).to(self.device)
 
     def remove_conditioning(self):

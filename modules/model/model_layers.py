@@ -41,8 +41,8 @@ class LayerNorm(nn.Module):
         eps = 1e-5 if x.dtype == torch.float32 else 1e-3
         var = torch.var(x, dim=1, unbiased=False, keepdim=True)
         mean = torch.mean(x, dim=1, keepdim=True)
-        # return (x - mean) * (var + eps).rsqrt() * self.g
-        return self.normalize(x, mean, var, eps, self.g)
+        return (x - mean) * (var + eps).rsqrt() * self.g
+        # return normalize(x, mean, var, eps, self.g)
 
 
 class PreNorm(nn.Module):

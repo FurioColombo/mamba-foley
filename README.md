@@ -13,6 +13,9 @@ In our paper, we propose ***MambaFoley***, a waveform generation model for ***Fo
     <img src="./assets/unet.png" width="70%"/>
 </p>
 
+## Audio Samples
+A webpage providing a showcase for generated audio samples is available at this [link](https://furiocolombo.github.io/mamba-foley/).
+
 ## Setup
 \
 To get started, please prepare the codes and python environment.

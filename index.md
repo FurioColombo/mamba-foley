@@ -3,8 +3,6 @@ layout: default
 title:  "MambaFoley: Foley Sound Generation using Selective State-Space Models"
 ---
 
-<small>Marco Furio Colombo, Francesca Ronchini, Luca Comanducci, Fabio Antonacci</small>
-
 
 Accompanying website to the paper MambaFoley: Foley Sound Generation using Selective State-Space Models, Marco Furio Colombo, Francesca Ronchini, Luca Comanducci, Fabio Antonacci, submitted at ICASSP 2024.
 

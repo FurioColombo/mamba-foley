@@ -1,6 +1,10 @@
 # MambaFoley: Foley Sound Generation using Selective State-Space Models
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2409.09162) *Marco Furio Colombo, Francesca Ronchini, Luca Comanducci, Fabio Antonacci*
 
+
+https://furiocolombo.github.io/mamba-foley/
+
+
 ## Citation
 ```bibtex
 @misc{colombo2024mambafoleyfoleysoundgeneration,

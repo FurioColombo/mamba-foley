@@ -5,7 +5,7 @@
     <img src="./assets/mfoley_black-box.png" width="70%"/>
 </p>
 
-This repository contains the implementation of the paper, *[ MambaFoley: Foley Sound Generation using Selective State-Space Models](https://arxiv.org/abs/2409.09162)*, submitted to ICASSP 2024. 
+This repository contains the implementation of the paper, *[ MambaFoley: Foley Sound Generation using Selective State-Space Models](https://arxiv.org/abs/2409.09162)*, accepted at ICASSP 2025. 
 
 In our paper, we propose ***MambaFoley***, a waveform generation model for ***Foley*** sound synthesis, which can generate high-quality audio considering both sound class and when sound should be arranged. For the generation task we employ a diffusion model, with mamba layers in the UNet bottleneck for audio sequence modeling.
 
@@ -134,3 +134,4 @@ To train the T-Foley model, follow these steps:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+

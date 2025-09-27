@@ -4,7 +4,7 @@ title:  "MambaFoley: Foley Sound Generation using Selective State-Space Models"
 ---
 
 
-Accompanying website to the paper MambaFoley: Foley Sound Generation using Selective State-Space Models, Marco Furio Colombo, Francesca Ronchini, Luca Comanducci, Fabio Antonacci, submitted at ICASSP 2024.
+Accompanying website to the paper MambaFoley: Foley Sound Generation using Selective State-Space Models, Marco Furio Colombo, Francesca Ronchini, Luca Comanducci, Fabio Antonacci, submitted at ICASSP 2025.
 
 # Abstract
 Recent advancements in deep learning have led to widespread use of techniques for audio content generation, notably employing Denoising Diffusion Probabilistic Models (DDPM) across various tasks.  Among these, Foley Sound Synthesis is of particular interest for its role in applications for the creation of multimedia content. 
